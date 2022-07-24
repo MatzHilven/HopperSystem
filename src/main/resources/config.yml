@@ -1,0 +1,36 @@
+cropper:
+  name: "&a&nCrop Hopper"
+  lore:
+    - "&7Items listed below will be instantly"
+    - "&7picked up then transferred."
+    - ""
+    - "&aItems Retrieved"
+    - " &2* &7Cactus"
+
+mob-hopper:
+  name: "&a&nMob Hopper"
+  lore:
+    - "&7Items listed below will be instantly"
+    - "&7picked up then transferred."
+    - ""
+    - "&aItems Retrieved"
+    - " &2* &7Chicken"
+    - " &2* &7..."
+
+# in ticks | 20 ticks = 1 second
+pickup-delay: 100
+max-croppers-per-chunk: 5
+max-mob-hoppers-per-chunk: 2
+
+messages:
+  invalid-permissions: "&cInvalid permissions."
+  invalid-target: "&cInvalid target. Check if the specified player is online."
+  invalid-amount: "&cSpecified amount is invalid."
+  invalid-type: "&cSpecified type is invalid."
+  usage: "&c/givehopper <player> <amount> <type>"
+  given-hopper: "&aSuccessfully given &7%amount% %hopper% &ato &7%target%&a!"
+  received-hopper: "&aReceived &7%amount% %hopper%&a(s) !"
+  max-croppers-per-chunk: "&cYou've already place the maximum amount of &a&nCrop Hoppers &cin this chunk!"
+  max-mob-hoppers-per-chunk: "&cYou've already place the maximum amount of &a&nMob Hoppers &cin this chunk!"
+  placed-hopper: "&7Successfully &aplaced &7a %hopper%!"
+  broken-hopper: "&7Successfully &cbroken &7a %hopper%!"

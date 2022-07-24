@@ -1,0 +1,12 @@
+name: HopperSystem
+version: '${project.version}'
+main: me.matzhilven.hoppersystem.HopperSystem
+api-version: 1.17
+authors: [ MatzHilven ]
+description: Hopper system plugin created for PeanutCraft by MatzHilven.
+commands:
+  givehopper:
+    permission: hoppersystem.givecropper
+permissions:
+  hoppersystem.givehopper:
+    default: op
