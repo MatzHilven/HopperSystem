@@ -1,9 +1,7 @@
 package me.matzhilven.hoppersystem.hopper;
 
-import me.matzhilven.hoppersystem.utils.ConfigUtils;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Hopper;
 
 import java.util.UUID;
@@ -14,22 +12,14 @@ public class CustomHopper {
     private final Location location;
     private final Hopper hopper;
     private final Type type;
+    private boolean loaded;
 
-    public CustomHopper(UUID owner, Location location, Hopper hopper, Type type) {
+    public CustomHopper(UUID owner, Location location, Hopper hopper, Type type, boolean loaded) {
         this.owner = owner;
         this.location = location;
         this.hopper = hopper;
         this.type = type;
-    }
-
-    public static CustomHopper fromString(String configStr) {
-        String[] split = configStr.split("\\|");
-        Location location = ConfigUtils.toLocation(split[1]);
-        if (location.getWorld() == null) return null;
-        if (location.getWorld().getBlockAt(location).getType() != Material.HOPPER) return null;
-
-        return new CustomHopper(UUID.fromString(split[0]), location,
-                (Hopper) location.getWorld().getBlockAt(location).getState(), Type.valueOf(split[2]));
+        this.loaded = loaded;
     }
 
     public UUID getOwner() {
@@ -48,12 +38,17 @@ public class CustomHopper {
         return location.getChunk();
     }
 
-    public String getConfigString() {
-        return owner.toString() + "|" + ConfigUtils.toString(location) + "|" + type;
-    }
-
     public Type getType() {
         return type;
+    }
+
+    public boolean isLoaded() {
+        return loaded;
+    }
+
+    public void setLoaded(boolean loaded) {
+        System.out.println(this);
+        this.loaded = loaded;
     }
 
     public enum Type {

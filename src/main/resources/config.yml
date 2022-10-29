@@ -18,7 +18,7 @@ mob-hopper:
     - " &2* &7..."
 
 # in ticks | 20 ticks = 1 second
-pickup-delay: 100
+pickup-delay: 40
 max-croppers-per-chunk: 5
 max-mob-hoppers-per-chunk: 2
 

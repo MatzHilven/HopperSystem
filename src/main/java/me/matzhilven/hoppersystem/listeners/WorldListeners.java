@@ -5,7 +5,9 @@ import me.matzhilven.hoppersystem.hopper.CustomHopper;
 import me.matzhilven.hoppersystem.utils.Constants;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
@@ -26,45 +28,58 @@ public class WorldListeners implements Listener {
         main.getServer().getPluginManager().registerEvents(this, main);
     }
 
-    @EventHandler
-    private void onItemSpawn(ItemSpawnEvent e) {
-        Material material = e.getEntity().getItemStack().getType();
+    @EventHandler(priority = EventPriority.LOWEST)
+    private void onItemSpawn(ItemSpawnEvent event) {
+
+        if (event.isCancelled()) return;
+        if (event.getEntityType() != EntityType.DROPPED_ITEM) return;
+
+        Material material = event.getEntity().getItemStack().getType();
 
         if (Constants.CROP_DROPS.contains(material)) {
 
-            if (!main.getCropperManager().isHopperInChunk(CustomHopper.Type.CROPS, e.getLocation().getChunk())) return;
+            if (!main.getHopperManager().isHopperInChunk(CustomHopper.Type.CROPS, event.getLocation().getChunk())) return;
 
-            Optional<CustomHopper> optionalCropper = main.getCropperManager().getFreeHopper(CustomHopper.Type.CROPS, e.getLocation().getChunk());
+            Optional<CustomHopper> optionalCropper = main.getHopperManager().getFreeHopper(CustomHopper.Type.CROPS, event.getLocation().getChunk());
 
             if (!optionalCropper.isPresent()) return;
 
             CustomHopper hopper = optionalCropper.get();
 
-            HashMap<Integer, ItemStack> returnedItems = hopper.getHopper().getInventory().addItem(e.getEntity().getItemStack());
+            HashMap<Integer, ItemStack> returnedItems = hopper.getHopper().getInventory().addItem(event.getEntity().getItemStack());
 
-            if (returnedItems.size() == 0) e.setCancelled(true);
+            if (returnedItems.size() == 0) {
+                event.getEntity().remove();
+            } else {
+                event.getEntity().getItemStack().setAmount(returnedItems.get(0).getAmount());
+            }
+
             return;
         }
 
         if (!Constants.MOB_DROPS.contains(material)) return;
 
-        if (!main.getCropperManager().isHopperInChunk(CustomHopper.Type.MOBS, e.getLocation().getChunk())) return;
+        if (!main.getHopperManager().isHopperInChunk(CustomHopper.Type.MOBS, event.getLocation().getChunk())) return;
 
-        Optional<CustomHopper> optionalCropper = main.getCropperManager().getFreeHopper(CustomHopper.Type.MOBS, e.getLocation().getChunk());
+        Optional<CustomHopper> optionalCropper = main.getHopperManager().getFreeHopper(CustomHopper.Type.MOBS, event.getLocation().getChunk());
 
         if (!optionalCropper.isPresent()) return;
 
         CustomHopper hopper = optionalCropper.get();
 
-        HashMap<Integer, ItemStack> returnedItems = hopper.getHopper().getInventory().addItem(e.getEntity().getItemStack());
+        HashMap<Integer, ItemStack> returnedItems = hopper.getHopper().getInventory().addItem(event.getEntity().getItemStack());
 
-        if (returnedItems.size() == 0) e.setCancelled(true);
+        if (returnedItems.size() == 0) {
+            event.getEntity().remove();
+        } else {
+            event.getEntity().getItemStack().setAmount(returnedItems.get(0).getAmount());
+        }
     }
 
     @EventHandler
     private void onPistonExtend(BlockPistonExtendEvent e) {
         if (e.getBlock().getType() != Material.HOPPER) return;
-        if (main.getCropperManager().getHopperAtLoc(e.getBlock().getLocation()) == null) return;
+        if (main.getHopperManager().getHopperAtLoc(e.getBlock().getLocation()) == null) return;
         e.setCancelled(true);
     }
 
@@ -76,7 +91,7 @@ public class WorldListeners implements Listener {
 
         for (Block block : e.blockList()) {
             if (block == null) continue;
-            if (block.getType() != Material.HOPPER && main.getCropperManager().getHopperAtLoc(block.getLocation()) == null) {
+            if (block.getType() != Material.HOPPER && main.getHopperManager().getHopperAtLoc(block.getLocation()) == null) {
                 exploded.add(block);
             }
         }

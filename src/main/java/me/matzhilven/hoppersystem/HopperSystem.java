@@ -1,53 +1,79 @@
 package me.matzhilven.hoppersystem;
 
 import me.matzhilven.hoppersystem.commands.CHopperCommand;
-import me.matzhilven.hoppersystem.data.DataConfig;
+import me.matzhilven.hoppersystem.data.PlayerDataFile;
 import me.matzhilven.hoppersystem.hopper.CHopperManager;
 import me.matzhilven.hoppersystem.hopper.CustomHopper;
-import me.matzhilven.hoppersystem.listeners.WorldListeners;
 import me.matzhilven.hoppersystem.listeners.PlayerListeners;
+import me.matzhilven.hoppersystem.listeners.WorldListeners;
 import me.matzhilven.hoppersystem.tasks.CollectTask;
 import me.matzhilven.hoppersystem.utils.ItemBuilder;
-import me.matzhilven.hoppersystem.utils.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.UUID;
+
 public final class HopperSystem extends JavaPlugin {
 
-    private CHopperManager CHopperManager;
-    private DataConfig dataConfig;
+    private CHopperManager hopperManager;
+    private HashMap<UUID, PlayerDataFile> dataCache;
 
     @Override
     public void onEnable() {
 
         saveDefaultConfig();
 
-        CHopperManager = new CHopperManager(this);
-        dataConfig = new DataConfig(this);
+        hopperManager = new CHopperManager(this);
 
         new CHopperCommand(this);
 
         new PlayerListeners(this);
         new WorldListeners(this);
 
-        new CollectTask(this).runTaskTimer(this, getConfig().getLong("pickup-delay"),
-                getConfig().getLong("pickup-delay"));
+        new CollectTask(this).runTaskTimerAsynchronously(this, 0, getConfig().getLong("pickup-delay"));
 
 
-        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            Logger.log("saving data...");
-            dataConfig.saveCroppers();
-        }, 20L * 60L * 5L, 20L * 60L * 5L);
+        dataCache = new HashMap<>();
+        loadCache();
     }
 
     @Override
     public void onDisable() {
-        dataConfig.saveCroppers();
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            PlayerDataFile dataFile = dataCache.getOrDefault(player.getUniqueId(), new PlayerDataFile(this, player));
+            dataFile.saveData(player.getUniqueId());
+        });
     }
 
-    public CHopperManager getCropperManager() {
-        return CHopperManager;
+    private void loadCache() {
+        File dataFolder = new File(getDataFolder(), "playerdata");
+
+        if (!dataFolder.exists()) dataFolder.mkdirs();
+
+        for (File file : dataFolder.listFiles()) {
+            YamlConfiguration configuration = new YamlConfiguration();
+
+            try {
+                configuration.load(file);
+            } catch (IOException | InvalidConfigurationException e) {
+                e.printStackTrace();
+            }
+
+            PlayerDataFile dataFile = new PlayerDataFile(this, file);
+            dataFile.load();
+            dataCache.put(UUID.fromString(file.getName().replace(".yml", "")), dataFile);
+        }
+    }
+
+    public CHopperManager getHopperManager() {
+        return hopperManager;
     }
 
     public ItemStack getItem(CustomHopper.Type type, int amount) {
@@ -59,5 +85,9 @@ public final class HopperSystem extends JavaPlugin {
                 .addNBT("cropper", type.toString())
                 .setAmount(amount)
                 .toItemStack();
+    }
+
+    public HashMap<UUID, PlayerDataFile> getDataCache() {
+        return dataCache;
     }
 }
